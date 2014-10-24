@@ -1,10 +1,9 @@
-###########################################################################
-#
-#  SerialGibbs runner: consumes repeatedly a gibbs sampler and returns a
-#                      GibbsChain
-#
-#
-###########################################################################
+"""
+SerialGibbs runner: consumes repeatedly a gibbs sampler and returns a
+                    GibbsChain
+"""
+
+export SerialGibbs
 
 immutable SerialGibbs <: MCMCRunner
     burnin::Int
