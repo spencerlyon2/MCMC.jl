@@ -17,6 +17,13 @@ immutable MCMCSample
 	diagnostics::Dict{Any,Any}              # sampler-dependant diagnostic variables
 end
 
+
+immutable GibbsSample
+    sample::Dict{Symbol, Array}  # Samples for each parameter
+    diagnostics::Dict{Any, Any}  # Sampler-dependent diagnostic variables
+end
+
+
 MCMCSample(ppars::Vector{Float64}, plogtarget::Float64,
   pars::Vector{Float64}, logtarget::Float64, diagnostics::Dict{Any,Any}) =
   MCMCSample(ppars, plogtarget, nothing, pars, logtarget, nothing, diagnostics)
