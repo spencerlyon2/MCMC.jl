@@ -27,6 +27,8 @@ function run(t::Array{MCMCTask}; args...)
     res
   elseif isa(lastrunner, SerialTempMC)
     run_serialtempmc(t)
+  elseif isa(lastrunner, SerialGibbs)
+    run_serialgibbs(t)
   else isa(lastrunner, SeqMC)
     run_seqmc(t; args...)
   end
@@ -39,6 +41,8 @@ function prun(t::Array{MCMCTask}; args...)
 
   if isa(lastrunner, SerialMC)
     pmap(run_serialmc_exit, t)
+  elseif isa(lastrunner, SerialGibbs)
+    pmap(run_serialgibbs_exit, t)
   end
 end
 
@@ -48,6 +52,8 @@ run{M<:MCMCModel, S<:MCMCSampler}(m::Union(M, Vector{M}), s::Union(S, Vector{S})
 # Functions for resuming MCMCTasks as well as arrays of MCMCTasks
 function resume(t::MCMCTask; steps::Int=100)
   if isa(t.runner, SerialMC)
+    resume_serialmc(t, steps=steps)
+  elseif isa(t.runner, SerialGibbs)
     resume_serialmc(t, steps=steps)
   end
 end
@@ -63,6 +69,8 @@ function resume(t::Array{MCMCTask}; steps::Int=100, args...)
     res
   elseif isa(t[end].runner, SerialTempMC)
     resume_serialtempmc(t, steps=steps)
+  elseif isa(t[end].runner, SerialGibbs)
+    resume_serialgibbs(t, steps=steps)
   else isa(t[end].runner, SeqMC)
     resume_seqmc(t; steps=steps, args...)
   end
