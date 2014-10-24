@@ -2,6 +2,7 @@ import Base.run
 export run, resume, prun
 
 stop!(c::MCMCChain) = (!istaskdone(c.task.task) ? c.task.task.state = :done : nothing)
+stop!(c::GibbsChain) = (!istaskdone(c.task.task) ? c.task.task.state = :done : nothing)
 
 # General run() function which invoke run function specific to Task.runner field
 function run(t::MCMCTask)
@@ -22,12 +23,12 @@ function run(t::Array{MCMCTask}; args...)
     res = Array(MCMCChain, size(t))
     for i = 1:length(t)
       res[i] = run(t[i])
-    end 
+    end
     res
   elseif isa(lastrunner, SerialTempMC)
     run_serialtempmc(t)
   else isa(lastrunner, SeqMC)
-    run_seqmc(t; args...)    
+    run_seqmc(t; args...)
   end
 end
 
@@ -37,7 +38,7 @@ function prun(t::Array{MCMCTask}; args...)
   @assert all(map(t->isa(t.runner, typeof(lastrunner)), t)) "Runners do not have the same runner type"
 
   if isa(lastrunner, SerialMC)
-    pmap(run_serialmc_exit, t)   
+    pmap(run_serialmc_exit, t)
   end
 end
 
@@ -58,11 +59,11 @@ function resume(t::Array{MCMCTask}; steps::Int=100, args...)
     res = Array(MCMCChain, size(t))
       for i = 1:length(t)
         res[i] = resume(t[i], steps=steps)
-      end 
+      end
     res
   elseif isa(t[end].runner, SerialTempMC)
     resume_serialtempmc(t, steps=steps)
   else isa(t[end].runner, SeqMC)
-    resume_seqmc(t; steps=steps, args...)    
+    resume_seqmc(t; steps=steps, args...)
   end
 end
