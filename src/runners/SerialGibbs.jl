@@ -53,7 +53,7 @@ function run_serialgibbs(t::MCMCTask)
 
         if in(i, t.runner.r)
             for nm in param_names
-                samples[nm][j, :] = t.model.curr_params[nm]
+                samples[nm][:, j] = t.model.curr_params[nm]
             end
 
             # save diagnostics
@@ -81,4 +81,9 @@ function run_serialgibbs_exit(t::MCMCTask)
 end
 
 
-
+function resume_serialgibbs(t::MCMCTask; steps::Int=100)
+    @assert typeof(t.runner) == SerialGibbs "resume_serialgibbs can not be " *
+    "called on an MCMCTask whose runner is of type $(fieldtype(t, :runner))"
+    run(t.model, t.sampler, SerialGibbs(steps=steps,
+                                        thinning=t.runner.thinning))
+end
