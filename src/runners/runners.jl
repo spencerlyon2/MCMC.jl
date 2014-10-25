@@ -8,6 +8,8 @@ stop!(c::GibbsChain) = (!istaskdone(c.task.task) ? c.task.task.state = :done : n
 function run(t::MCMCTask)
   if isa(t.runner, SerialMC)
     run_serialmc(t)
+  elseif isa(t.runner, SerialGibbs)
+    run_serialgibbs(t)
   end
 end
 
@@ -24,11 +26,15 @@ function run(t::Array{MCMCTask}; args...)
     for i = 1:length(t)
       res[i] = run(t[i])
     end
-    res
+    return res
   elseif isa(lastrunner, SerialTempMC)
     run_serialtempmc(t)
   elseif isa(lastrunner, SerialGibbs)
-    run_serialgibbs(t)
+    res = Array(GibbsChain, size(t))
+    for i=1:length(t)
+      res[i] = run(t[i])
+    end
+    return res
   else isa(lastrunner, SeqMC)
     run_seqmc(t; args...)
   end
@@ -54,7 +60,7 @@ function resume(t::MCMCTask; steps::Int=100)
   if isa(t.runner, SerialMC)
     resume_serialmc(t, steps=steps)
   elseif isa(t.runner, SerialGibbs)
-    resume_serialmc(t, steps=steps)
+    resume_serialgibbs(t, steps=steps)
   end
 end
 
@@ -66,11 +72,15 @@ function resume(t::Array{MCMCTask}; steps::Int=100, args...)
       for i = 1:length(t)
         res[i] = resume(t[i], steps=steps)
       end
-    res
+    return res
   elseif isa(t[end].runner, SerialTempMC)
     resume_serialtempmc(t, steps=steps)
   elseif isa(t[end].runner, SerialGibbs)
-    resume_serialgibbs(t, steps=steps)
+    res = Array(GibbsChain, size(t))
+    for i=1:length(t)
+      res[i] = resume(t[i], steps=steps)
+    end
+    return res
   else isa(t[end].runner, SeqMC)
     resume_seqmc(t; steps=steps, args...)
   end
