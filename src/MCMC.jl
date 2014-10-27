@@ -129,11 +129,12 @@ GibbsChain(r::Range{Int}, s::Dict{Symbol, Array},
            t::Union(MCMCTask, Array{MCMCTask})) =
   GibbsChain(r, s, Dict(), t, NaN)
 
-function show(io::IO, res::GibbsChain)
-  nsamples, npars = size(res.samples)
+function show(io::IO, gc::GibbsChain)
+  npars = length(gc.samples)
+  nsamples = length(gc.range)
   msg = "$npars parameters, $nsamples samples (per parameter)"
-  msg *= " $(round(res.runTime, 1)) sec."
-  println(io, msg)
+  msg *= " $(round(gc.runTime, 1)) sec."
+  print(io, msg)
 end
 
 #  Definition of * as a shortcut operator for (model, sampler, runner) combination
