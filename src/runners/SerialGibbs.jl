@@ -70,6 +70,14 @@ function run_serialgibbs(t::MCMCTask)
         end
     end
 
+    # make sure each column is a variable. Specifically, if a parameter
+    # is draws over time, we want x[i, j] to be x_j on scan i. Also
+    # squeeze out singleton dimensions
+    for nm in param_names
+        s = samples[nm]'
+        samples[nm] = squeeze(s, [1:ndims(s)][collect(size(s)) .== 1])
+    end
+
     GibbsChain(t.runner.r, samples, diags, t, toq())
 end
 
