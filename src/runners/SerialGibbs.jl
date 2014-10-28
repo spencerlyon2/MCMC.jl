@@ -53,7 +53,7 @@ function run_serialgibbs(t::MCMCTask)
 
         if in(i, t.runner.r)
             for nm in param_names
-                samples[nm][:, j] = t.model.curr_params[nm]
+                samples[nm][:, j] = newprop.sample[nm]
             end
 
             # save diagnostics
