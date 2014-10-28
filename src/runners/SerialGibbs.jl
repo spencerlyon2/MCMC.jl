@@ -3,11 +3,7 @@ SerialGibbs runner: consumes repeatedly a gibbs sampler and returns a
                     GibbsChain
 """
 
-# TODO: finish this. Need to read about MCJobs
-
-export SerialGibbs
-
-immutable SerialGibbs <: MCRunner
+immutable SerialGibbs <: SerialMCRunner
     burnin::Int
     thinning::Int
     len::Int
@@ -35,13 +31,15 @@ function SerialGibbs(;steps::Int=100, burnin::Int=0, thinning::Int=1)
     SerialGibbs((burnin+1):thinning:steps)
 end
 
-function run_serialgibbs(t::MCTask)
+function run(m::MCGibbsModel, s::Gibbs, r::SerialGibbs, t::MCTuner, job::MCJob)
     tic() # start timer
 
     param_names = keys(t.model.curr_params)
 
+    # pre-allocate space for storing results
     samples = Dict{Symbol, Array}()
     for nm in param_names
+        # This might be a 1 x N Matrix now, but we will resize at the end
         samples[nm] = fill(NaN, length(t.model.curr_params[nm]),
                            length(t.runner.r))
     end
@@ -49,13 +47,15 @@ function run_serialgibbs(t::MCTask)
     diags = Dict()
     diags["step"] = collect(t.runner.r)
 
-    j = 1
-    for i in 1:t.runner.len
-        newprop = consume(t.task)
+    # sampling loop
+    i::Int = 1
 
-        if in(i, t.runner.r)
+    for j in 1:r.nsteps
+        new_state = job.receive()  # this is a Dict{Symbol, F64orVectorF64}
+
+        if j in r.r
             for nm in param_names
-                samples[nm][:, j] = t.model.curr_params[nm]
+                samples[nm][:, j] = new_state[nm]
             end
 
             # save diagnostics
@@ -68,24 +68,17 @@ function run_serialgibbs(t::MCTask)
                 diags[k][j] = v
             end
 
-            j += 1
+            i += 1
         end
     end
 
-    GibbsChain(t.runner.r, samples, diags, t, toq())
-end
+    # make sure each column is a variable. Specifically, if a parameter
+    # is draws over time, we want x[i, j] to be x_j on scan i. Also
+    # squeeze out singleton dimensions
+    for nm in param_names
+        s = samples[nm]'
+        samples[nm] = squeeze(s, [1:ndims(s)][collect(size(s)) .== 1])
+    end
 
-
-function run_serialgibbs_exit(t::MCTask)
-  chain = run_serialgibbs(t)
-  stop!(chain)
-  return chain
-end
-
-
-function resume_serialgibbs(t::MCTask; steps::Int=100)
-    @assert typeof(t.runner) == SerialGibbs "resume_serialgibbs can not be " *
-    "called on an MCTask whose runner is of type $(fieldtype(t, :runner))"
-    run(t.model, t.sampler, SerialGibbs(steps=steps,
-                                        thinning=t.runner.thinning))
+    GibbsChain(samples, diags, toq())
 end

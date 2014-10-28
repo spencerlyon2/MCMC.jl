@@ -1,6 +1,7 @@
-### GibbsChain, the result of running a MCMCTask with GibbsSampler
+# GibbsChain, stores the result of running a Gibbs sampler
+
 type GibbsChain
-  samples::Dict{Symbol, Array}
+  samples::Dict{Symbol, F64OrVectorF64}
   diagnostics::Dict
   runTime::Float64
 end

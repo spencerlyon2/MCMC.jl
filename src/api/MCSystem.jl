@@ -46,6 +46,10 @@ type MCBaseSample <: MCSample{NullOrder}
   logtarget::Float64
 end
 
+# TODO: I don't need this type to hold anything. I just have it so I can
+#       write GibbsStash <: MCStash{GibbsSample}
+type GibbsSample <: MCSample{NullOrder} end
+
 MCBaseSample(s::Vector{Float64}) = MCBaseSample(s, NaN)
 MCBaseSample() = MCBaseSample(Float64[], NaN)
 
@@ -146,3 +150,4 @@ MCSystem(m::MCModel, s::MCSampler, r::MCRunner, t::MCTuner=VanillaMCTuner()) = M
 MCSystem{M<:MCModel, S<:MCSampler, R<:MCRunner, T<:MCTuner}(m::Vector{M}, s::Vector{S}, r::Vector{R}, t::Vector{T}) =
   map(MCSystem, m, s, r, t)
 MCSystem{M<:MCModel, S<:MCSampler, R<:MCRunner}(m::Vector{M}, s::Vector{S}, r::Vector{R}) = map(MCSystem, m, s, r)
+

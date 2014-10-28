@@ -33,9 +33,12 @@ import Distributions:
 export
   ### types
   MCLikModel,
+  MCGibbsModel,
   MCSystem,
   MCChain,
+  GibbsChain,
   ARS,
+  Gibbs,
   SliceSampler,
   MH,
   RAM,
@@ -43,6 +46,7 @@ export
   MALA,
   SMMALA,
   SerialMC,
+  SerialGibbs,
   VanillaMCTuner,
   EmpiricalMCTuner,
   PlainMCJob,
@@ -62,6 +66,7 @@ export
   quadraticzv
 
 include("api/MCSystem.jl") # In an abstract sense, MCSystem consists of the user input
+include("api/GibbsChain.jl")
 include("api/MCChain.jl") # MCChain holds the output of a Monte Carlo simulation
 include("parsers/expr_funcs.jl")
 include("parsers/modelparser.jl")
@@ -69,9 +74,11 @@ include("parsers/definitions/DistributionsExtensions.jl")
 include("parsers/definitions/AccumulatorDerivRules.jl")
 include("parsers/definitions/MCMCDerivRules.jl")
 include("parsers/expr_funcs.jl")
+include("models/MCGibbsModel.jl")
 include("models/MCLikModel.jl")
 include("models/models.jl")
 include("samplers/ARS.jl")
+include("samplers/Gibbs.jl")
 include("samplers/SliceSampler.jl")
 include("samplers/MH.jl")
 include("samplers/RAM.jl")
@@ -83,6 +90,7 @@ include("samplers/MALA.jl")
 include("samplers/SMMALA.jl")
 # include("samplers/RMHMC.jl")
 # include("samplers/PMALA.jl")
+include("runners/SerialGibbs.jl")
 include("runners/SerialMC.jl")
 # include("runners/SerialTempMC.jl")
 # include("runners/SeqMC.jl")

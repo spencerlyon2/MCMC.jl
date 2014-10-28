@@ -1,33 +1,39 @@
 """
-  Generic Gibbs sampler
+Generic Gibbs sampler
 
-  Parameters:
+    Parameters:
+
+## Notes (comments welcome)
+
+* I don't attach much to the stash object. All we need is the state and
+  sample count.
+    * I don't include a MCTune object because we always accept.
+
+
 """
 immutable Gibbs <: MCSampler
 end
 
-type GibbsStash
-  params::Dict{Symbol, Union(Array{Float64}, Float64)}  # current param values
-  tune::MCTune  # tuner
-  count::Int  # Current number of iterations
+type GibbsStash <: MCStash{GibbsSample}
+    state::Dict{Symbol}  # current param values
+    count::Int           # Current number of iterations
 end
 
-function inititialize(m::GibbsModel, s::Gibbs, r::MCRunner, t::MCTuner)
-    GibbsStash(deepcopy(m.init), VanillaMCTune(), 0)
+
+function inititialize(m::MCGibbsModel, s::Gibbs, r::MCRunner, t::MCTuner)
+    GibbsStash(GibbsState(deepcopy(m.init), Dict()), 0)
 end
 
-function reset!(stash::GibbsStash,
-                x::Dict{Symbol, Union(Array{Float64}, Float64)})
-    stash.params = deepcopy(x)
+
+function reset!(stash::GibbsStash, x::Dict{Symbol, F64OrVectorF64})
+    stash.state.sample = deepcopy(x)
 end
 
-function initialize_task(m::GibbsModel, s::Gibbs, r::MCRunner, t::MCTuner)
+
+function initialize_task(m::MCGibbsModel, s::Gibbs, r::MCRunner, t::MCTuner)
     stash::GibbsStash = initialize(m, s, r, t)
 
-    function reset(x::Dict{Symbol, Union(Array{Float64}, Float64)})
-        reset!(stash, x)
-    end
-
+    reset(x::Dict{Symbol, F64OrVectorF64}) = reset!(stash, x)
     task_local_storage(:reset, reset)
 
     while true
@@ -36,24 +42,17 @@ function initialize_task(m::GibbsModel, s::Gibbs, r::MCRunner, t::MCTuner)
 end
 
 
-function iterate!(stash::GibbsStash, m::GibbsModel, s::Gibbs, r::GibbsRunner,
+function iterate!(stash::GibbsStash, m::MCGibbsModel, s::Gibbs, r::MCRunner,
                   t::MCTuner, send::Function)
-    # Localize some parameters
-    local next_pars, num_blocks, block
-
-    # initialization
-    num_blocks = model.n_block
-
-    # run all blocks
-    for block=1:num_blocks
-        # updates param value and distribution for each param in  block
+    # update all parameters, block by block
+    for block=1:model.n_blocks
         model.block_funcs[block](model)
     end
 
-    # Construct a new GibbsSample
-    next_pars = copy(model.curr_params)
-    gs = GibbsSample(next_pars, {"accept" => true})
+    # extract new parameter values from model
+    stash.state = deepcopy(model.state)
+    stash.count += 1  # increment counter
 
-    # Produce the next GibbsSample
-    send(gs)
+    # Produce the next sample
+    send(stash.state)
 end
