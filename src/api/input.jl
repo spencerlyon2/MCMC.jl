@@ -46,6 +46,11 @@ type MCBaseSample <: MCSample{NullOrder}
   logtarget::Float64
 end
 
+
+type GibbsSample <: MCSample{NullOrder}
+  sample::Dict{Symbol}
+end
+
 MCBaseSample(s::Vector{Float64}) = MCBaseSample(s, NaN)
 MCBaseSample() = MCBaseSample(Float64[], NaN)
 
@@ -112,6 +117,11 @@ abstract MCTune
 type MCState{S<:MCSample}
   successive::S # If proposed sample is accepted, then successive = proposed, otherwise successive = current
   current::S
+  diagnostics::Dict
+end
+
+type GibbsState{S<:MCSample}
+  current:S
   diagnostics::Dict
 end
 

@@ -6,7 +6,7 @@ type MCChain
   gradlogtargets::Matrix{Float64}
   diagnostics::Dict
   runtime::Float64
-   
+
   function MCChain(s::Matrix{Float64}, l::Vector{Float64}, g::Matrix{Float64}, d::Dict, r::Float64)
     @assert size(s, 1) == length(l) "Number of samples and logtargets values are not equal."
     if size(g) != (0, 0)
@@ -39,4 +39,34 @@ end
 function show(io::IO, c::MCChain)
   nsamples, npars = size(c.samples)
   println(io, "$npars parameters, $nsamples samples (per parameter), $(round(c.runtime, 1)) sec.")
+end
+
+
+## --------------------------------------------------------- ##
+#- Gibbs Chain: stores the result of running a Gibbs sampler -#
+## --------------------------------------------------------- ##
+
+type GibbsChain
+    samples::Dict{Symbol, Array}
+    diagnostics::Dict
+    runTime::Float64
+end
+
+# no diag
+GibbsChain(s::Dict{Symbol, Array}, rt::Float64) = GibbsChain(s, Dict(), rt)
+
+# no rt
+GibbsChain(s::Dict{Symbol, Array}, d::Dict) = GibbsChain(s, d, NaN)
+
+# no diag or rt
+GibbsChain(s::Dict{Symbol, Array}) = GibbsChain(s, Dict(), NaN)
+
+function show(io::IO, res::GibbsChain)
+    npars = length(res.samples)
+    # extract a key of this dict
+    a_key = collect(keys(res.sample))[1]
+    nsamlpes = size(res.samples[a_key], 1)
+    msg = "Gibbs chain $npars parameters, $nsamples samples (per parameter)"
+    msg *= " $(round(res.runTime, 1)) sec."
+    println(io, msg)
 end
