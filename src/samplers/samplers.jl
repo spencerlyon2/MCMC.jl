@@ -19,7 +19,7 @@ end
 
 
 immutable GibbsSample
-    sample::Dict{Symbol, Union(Float64, Vector{Float64})}  # Samples for each parameter
+    sample::Dict{Symbol, Union(Float64, Vector{Float64}, Matrix{Float64})}
     diagnostics::Dict{Any, Any}  # Sampler-dependent diagnostic variables
 end
 

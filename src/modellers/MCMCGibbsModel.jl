@@ -5,8 +5,8 @@ Definition of Gibbs-type model
 export MCMCGibbsModel
 
 # just write this out so I don't have to type it a bunch of times
-typealias DictKeyVectorOrOne{K, V} Union(Dict{K, V}, Dict{Vector{K}, V})
 typealias VectorOrOne{T} Union(T, Vector{T})
+typealias DictKeyVectorOrOne{K, V} Dict{VectorOrOne{K}, V}
 
 
 """
