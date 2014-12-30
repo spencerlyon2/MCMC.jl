@@ -1,0 +1,8 @@
+
+Issues to create:
+ ☐ adding a `save` field to the Job types. This would probably dispatch on the sampler type to save the data appropriately. It might need the signature `save!(sa::MCSampler, st::MCState, c::MCChain, i::Int)`  (where `i` is the sample number so we know where to put things in the chain.)
+ ☐ Add a data field to the Model types.
+
+   * We want to allow users to store arbitrary data with the model so that they can access it from within the eval family of functions. So in the runner we would need to call `model.eval(proposed; data=data)`.
+   * Should data be a Dict, subtype of MCData, or a Union of them?
+   * We would want to do this in a non-breaking way so that current code that doesn't have a data kwarg in the eval function still works. This is tricky. It could involve some try/catch to see if we get a method error when trying to pass data, but that seems a bit hacky. Maybe we try/catch for a while and add a deprecation warning that eval functions that don't accept a data kwarg will not be supported in future versions.
